@@ -11,14 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 12
-        uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
-      - run: npm ci
-      - run: npm test
-      - name: codecov
-        run: npx codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          node-version: '20.x'
+      - name: Install
+        run: npm install
+
+      - name: Test
+        run: npm run test
+      #- name: codecov
+      #  run: npx codecov
+      #  env:
+      #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
