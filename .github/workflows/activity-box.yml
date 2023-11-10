@@ -9,8 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-      - uses: JasonEtco/activity-box@master
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ActivityBox
+        uses: Zaid-maker/recent-activity@v0.0.2    
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
