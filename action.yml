@@ -1,6 +1,6 @@
 name: ActivityBox
 description: Update a pinned gist to contain the latest activity of a user
-author: JasonEtco
+author: Zaid-maker
 branding:
   color: yellow
   icon: activity
