@@ -55,7 +55,7 @@ async function updateGist(tools, content) {
     await box.update({ content })
     tools.exit.success('Gist updated successfully!')
   } catch (err) {
-    tools.log.error('Failed to update Gist:', err)
+    tools.log.fatal('Failed to update Gist:', err) // Use fatal instead of error
     tools.exit.failure('Gist update failed.')
   }
 }
