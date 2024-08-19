@@ -8,31 +8,31 @@ const events = [
   {
     type: 'IssuesEvent',
     repo: { name: 'clippy/take-over-github' },
-    payload: { action: 'opened', issue: { number: 1 } }
+    payload: { action: 'opened', issue: { number: 1 } },
   },
   {
     type: 'IssueCommentEvent',
     repo: { name: 'clippy/take-over-github' },
-    payload: { action: 'closed', issue: { number: 1 } }
+    payload: { action: 'closed', issue: { number: 1 } },
   },
   {
     type: 'PullRequestEvent',
     repo: { name: 'clippy/take-over-github' },
-    payload: { action: 'closed', pull_request: { number: 2, merged: true } }
+    payload: { action: 'closed', pull_request: { number: 2, merged: true } },
   },
   {
     type: 'PullRequestEvent',
     repo: { name: 'clippy/take-over-github' },
-    payload: { action: 'closed', pull_request: { number: 3, merged: false } }
+    payload: { action: 'closed', pull_request: { number: 3, merged: false } },
   },
   {
     type: 'PullRequestEvent',
     repo: {
       name:
-        'clippy/really-really-really-really-really-really-really-really-really-long'
+        'clippy/really-really-really-really-really-really-really-really-really-long',
     },
-    payload: { action: 'opened', pull_request: { number: 3 } }
-  }
+    payload: { action: 'opened', pull_request: { number: 3 } },
+  },
 ]
 
 describe('activity-box', () => {
@@ -41,14 +41,15 @@ describe('activity-box', () => {
   beforeEach(() => {
     GistBox.prototype.update = jest.fn()
 
-    Toolkit.run = fn => {
+    Toolkit.run = (fn) => {
       action = fn
     }
 
+    // Import the main script to set up the action
     require('..')
 
     nock('https://api.github.com')
-      // Get the user's recent activity
+      // Mock the request for the user's recent activity
       .get('/users/clippy/events/public?per_page=100')
       .reply(200, events)
 
@@ -58,13 +59,13 @@ describe('activity-box', () => {
         success: jest.fn(),
         warn: jest.fn(),
         fatal: jest.fn(),
-        debug: jest.fn()
-      }
+        debug: jest.fn(),
+      },
     })
 
     tools.exit = {
       success: jest.fn(),
-      failure: jest.fn()
+      failure: jest.fn(),
     }
   })
 
@@ -76,11 +77,11 @@ describe('activity-box', () => {
 
   it('handles failure to update the Gist', async () => {
     GistBox.prototype.update.mockImplementationOnce(() => {
-      throw new Error(404)
+      throw new Error('Gist update failed')
     })
 
     await action(tools)
     expect(tools.exit.failure).toHaveBeenCalled()
-    expect(tools.exit.failure.mock.calls).toMatchSnapshot()
+    expect(tools.exit.failure.mock.calls[0][0]).toEqual('Gist update failed.')
   })
 })
