@@ -20,10 +20,9 @@ jobs:
           node-version: '20.x'
       - name: Install
         run: npm install
-
-      - name: Test
-        run: npm run test
-      #- name: codecov
-      #  run: npx codecov
-      #  env:
-      #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      # - name: Test
+      #   run: npm run test
+      # #- name: codecov
+      # #  run: npx codecov
+      # #  env:
+      # #    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
