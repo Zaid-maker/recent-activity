@@ -1,7 +1,10 @@
-const { Toolkit } = require('actions-toolkit')
+const core = require('@actions/core')
+const github = require('@actions/github')
 const nock = require('nock')
 const { GistBox } = require('gist-box')
 
+jest.mock('@actions/core')
+jest.mock('@actions/github')
 jest.mock('gist-box')
 
 const events = [
@@ -28,49 +31,38 @@ const events = [
   {
     type: 'PullRequestEvent',
     repo: {
-      name:
-        'clippy/really-really-really-really-really-really-really-really-really-long',
+      name: 'clippy/really-really-really-really-really-really-really-really-really-long',
     },
     payload: { action: 'opened', pull_request: { number: 3 } },
   },
 ]
 
 describe('activity-box', () => {
-  let action, tools
+  let octokit
 
   beforeEach(() => {
     GistBox.prototype.update = jest.fn()
 
-    Toolkit.run = (fn) => {
-      action = fn
+    core.debug = jest.fn()
+    core.info = jest.fn()
+    core.setFailed = jest.fn()
+
+    octokit = {
+      activity: {
+        listPublicEventsForUser: jest.fn().mockResolvedValue({ data: events }),
+      },
     }
 
-    // Import the main script to set up the action
-    require('..')
+    github.getOctokit = jest.fn().mockReturnValue(octokit)
 
     nock('https://api.github.com')
-      // Mock the request for the user's recent activity
       .get('/users/clippy/events/public?per_page=100')
       .reply(200, events)
-
-    tools = new Toolkit({
-      logger: {
-        info: jest.fn(),
-        success: jest.fn(),
-        warn: jest.fn(),
-        fatal: jest.fn(),
-        debug: jest.fn(),
-      },
-    })
-
-    tools.exit = {
-      success: jest.fn(),
-      failure: jest.fn(),
-    }
   })
 
   it('updates the Gist with the expected string', async () => {
-    await action(tools)
+    const { run } = require('..')
+    await run()
     expect(GistBox.prototype.update).toHaveBeenCalled()
     expect(GistBox.prototype.update.mock.calls[0][0]).toMatchSnapshot()
   })
@@ -80,8 +72,22 @@ describe('activity-box', () => {
       throw new Error('Gist update failed')
     })
 
-    await action(tools)
-    expect(tools.exit.failure).toHaveBeenCalled()
-    expect(tools.exit.failure.mock.calls[0][0]).toEqual('Gist update failed.')
+    const { run } = require('..')
+    await run()
+    expect(core.setFailed).toHaveBeenCalledWith(
+      'Failed to update Gist: Gist update failed'
+    )
+  })
+
+  it('handles failure to fetch user activity', async () => {
+    octokit.activity.listPublicEventsForUser.mockImplementationOnce(() => {
+      throw new Error('Failed to fetch user activity')
+    })
+
+    const { run } = require('..')
+    await run()
+    expect(core.setFailed).toHaveBeenCalledWith(
+      'Action failed with error: Failed to fetch user activity'
+    )
   })
 })
